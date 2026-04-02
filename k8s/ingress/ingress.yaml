@@ -3,9 +3,11 @@ kind: Ingress
 metadata:
   name: microservices-ingress
 spec:
+  ingressClassName: nginx
   rules:
     - http:
         paths:
+
           - path: /login
             pathType: Prefix
             backend:
@@ -53,7 +55,7 @@ spec:
                 name: order-service
                 port:
                   number: 80
-          
+
           - path: /
             pathType: Prefix
             backend:

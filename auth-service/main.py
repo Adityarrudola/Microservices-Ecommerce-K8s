@@ -17,6 +17,7 @@ DB_CONFIG = {
 }
 
 
+# ---------------- DB CONNECTION ----------------
 def get_connection():
     for _ in range(5):
         try:
@@ -26,6 +27,7 @@ def get_connection():
     raise Exception("DB not reachable")
 
 
+# ---------------- INIT DB ----------------
 def init_db():
     conn = get_connection()
     cur = conn.cursor()
@@ -46,14 +48,17 @@ def init_db():
 init_db()
 
 
-def generate_token(username):
+# ---------------- TOKEN GENERATION ----------------
+def generate_token(user_id, username):
     payload = {
         "sub": username,
+        "user_id": user_id,   # 🔥 IMPORTANT FIX
         "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=2)
     }
     return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
 
+# ---------------- REGISTER ----------------
 @app.post("/register")
 def register(user: dict):
     conn = get_connection()
@@ -65,7 +70,8 @@ def register(user: dict):
             (user["username"], user["password"])
         )
         conn.commit()
-    except:
+    except Exception as e:
+        print("REGISTER ERROR:", e)
         raise HTTPException(status_code=400, detail="User already exists")
 
     cur.close()
@@ -74,13 +80,14 @@ def register(user: dict):
     return {"message": "User registered"}
 
 
+# ---------------- LOGIN ----------------
 @app.post("/login")
 def login(user: dict):
     conn = get_connection()
     cur = conn.cursor()
 
     cur.execute(
-        "SELECT * FROM users WHERE username=%s AND password=%s",
+        "SELECT id, username FROM users WHERE username=%s AND password=%s",
         (user["username"], user["password"])
     )
 
@@ -92,9 +99,18 @@ def login(user: dict):
     if not result:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    token = generate_token(user["username"])
-    return {"token": token}
+    user_id, username = result
 
+    token = generate_token(user_id, username)
+
+    return {
+        "token": token,
+        "user_id": user_id,
+        "username": username
+    }
+
+
+# ---------------- VALIDATE TOKEN ----------------
 @app.get("/validate")
 def validate_token(authorization: str = Header(None)):
     if not authorization:
@@ -103,7 +119,12 @@ def validate_token(authorization: str = Header(None)):
     try:
         token = authorization.replace("Bearer ", "")
         payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        return {"username": payload["sub"]}
+
+        return {
+            "username": payload["sub"],
+            "user_id": payload["user_id"]   # 🔥 IMPORTANT FIX
+        }
+
     except Exception as e:
-        print("JWT ERROR:", e)   # 🔥 important for debugging
+        print("JWT ERROR:", e)
         raise HTTPException(status_code=401, detail="Invalid or expired token")
