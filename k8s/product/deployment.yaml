@@ -19,12 +19,7 @@ spec:
           imagePullPolicy: Never
           ports:
             - containerPort: 8000
-          env:
-            - name: DB_HOST
-              value: postgres
-            - name: DB_NAME
-              value: product_db
-            - name: DB_USER
-              value: admin
-            - name: DB_PASS
-              value: admin
+        
+          envFrom:
+            - secretRef:
+                name: product-secret
