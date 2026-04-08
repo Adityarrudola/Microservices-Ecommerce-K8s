@@ -34,11 +34,11 @@ pipeline {
         stage('Update Helm Values') {
             steps {
                 sh """
-                yq -i '.auth.tag = "'"${BUILD_NUMBER}"'"' microservices-chart/values.yaml
-                yq -i '.user.tag = "'"${BUILD_NUMBER}"'"' microservices-chart/values.yaml
-                yq -i '.product.tag = "'"${BUILD_NUMBER}"'"' microservices-chart/values.yaml
-                yq -i '.order.tag = "'"${BUILD_NUMBER}"'"' microservices-chart/values.yaml
-                yq -i '.ui.tag = "'"${BUILD_NUMBER}"'"' microservices-chart/values.yaml
+                yq -i -y '.auth.tag = "'"${BUILD_NUMBER}"'"' microservices-chart/values.yaml
+                yq -i -y '.user.tag = "'"${BUILD_NUMBER}"'"' microservices-chart/values.yaml
+                yq -i -y '.product.tag = "'"${BUILD_NUMBER}"'"' microservices-chart/values.yaml
+                yq -i -y '.order.tag = "'"${BUILD_NUMBER}"'"' microservices-chart/values.yaml
+                yq -i -y '.ui.tag = "'"${BUILD_NUMBER}"'"' microservices-chart/values.yaml
                 """
             }
         }
