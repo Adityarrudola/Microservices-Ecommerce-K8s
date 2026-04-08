@@ -34,11 +34,11 @@ pipeline {
         stage('Update Helm Values') {
             steps {
                 sh """
-                sed -i 's|auth-service:.*|auth-service:${BUILD_NUMBER}|' microservices-chart/values.yaml
-                sed -i 's|user-service:.*|user-service:${BUILD_NUMBER}|' microservices-chart/values.yaml
-                sed -i 's|product-service:.*|product-service:${BUILD_NUMBER}|' microservices-chart/values.yaml
-                sed -i 's|order-service:.*|order-service:${BUILD_NUMBER}|' microservices-chart/values.yaml
-                sed -i 's|streamlit-ui:.*|streamlit-ui:${BUILD_NUMBER}|' microservices-chart/values.yaml
+                sed -i '/auth:/,/tag:/ s/tag:.*/tag: '"${BUILD_NUMBER}"'/' microservices-chart/values.yaml
+                sed -i '/user:/,/tag:/ s/tag:.*/tag: '"${BUILD_NUMBER}"'/' microservices-chart/values.yaml
+                sed -i '/product:/,/tag:/ s/tag:.*/tag: '"${BUILD_NUMBER}"'/' microservices-chart/values.yaml
+                sed -i '/order:/,/tag:/ s/tag:.*/tag: '"${BUILD_NUMBER}"'/' microservices-chart/values.yaml
+                sed -i '/ui:/,/tag:/ s/tag:.*/tag: '"${BUILD_NUMBER}"'/' microservices-chart/values.yaml
                 """
             }
         }
