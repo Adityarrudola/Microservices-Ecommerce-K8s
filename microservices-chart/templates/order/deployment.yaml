@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: {{ .Values.order.name }}
-          image: "{{ .Values.order.image }}"
+          image: "{{ .Values.order.image }}:{{ .Values.order.tag }}"
           imagePullPolicy: {{ .Values.order.imagePullPolicy }}
           ports:
             - containerPort: {{ .Values.order.port }}

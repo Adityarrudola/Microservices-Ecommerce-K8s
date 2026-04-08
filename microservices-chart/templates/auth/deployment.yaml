@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: {{ .Values.auth.name }}
-          image: "{{ .Values.auth.image }}"
+          image: "{{ .Values.auth.image }}:{{ .Values.auth.tag }}"
           imagePullPolicy: {{ .Values.auth.imagePullPolicy }}
           ports:
             - containerPort: {{ .Values.auth.port }}

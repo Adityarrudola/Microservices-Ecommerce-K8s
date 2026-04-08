@@ -64,8 +64,9 @@ global:
 
 auth:
   name: auth-service
-  image: auth-service:latest
-  imagePullPolicy: Never
+  image: adityarrudola/auth-service
+  tag: latest
+  imagePullPolicy: Always
   replicas: 2
   revisionHistoryLimit: 2
   port: 8000
@@ -97,8 +98,9 @@ auth:
 
 order:
   name: order-service
-  image: order-service:latest
-  imagePullPolicy: Never
+  image: adityarrudola/order-service
+  tag: latest
+  imagePullPolicy: Always
   replicas: 2
   revisionHistoryLimit: 2
   port: 8000
@@ -130,8 +132,9 @@ order:
 
 product:
   name: product-service
-  image: product-service:latest
-  imagePullPolicy: Never
+  image: adityarrudola/product-service
+  tag: latest
+  imagePullPolicy: Always
   replicas: 2
   revisionHistoryLimit: 2
   port: 8000
@@ -161,8 +164,9 @@ product:
 
 user:
   name: user-service
-  image: user-service:latest
-  imagePullPolicy: Never
+  image: adityarrudola/user-service
+  tag: latest
+  imagePullPolicy: Always
   replicas: 2
   revisionHistoryLimit: 2
   port: 8000
@@ -172,7 +176,6 @@ user:
     port: 80
 
   secretName: user-secret
-
 
   env:
     DB_HOST: postgres
@@ -193,8 +196,9 @@ user:
 
 ui:
   name: streamlit-ui
-  image: streamlit-ui:latest
-  imagePullPolicy: Never
+  image: adityarrudola/streamlit-ui
+  tag: latest
+  imagePullPolicy: Always
   replicas: 1
   revisionHistoryLimit: 2
   port: 8501

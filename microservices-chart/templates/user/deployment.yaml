@@ -38,7 +38,7 @@ spec:
 
       containers:
         - name: {{ .Values.user.name }}
-          image: "{{ .Values.user.image }}"
+          image: "{{ .Values.user.image }}:{{ .Values.user.tag }}"""
           imagePullPolicy: {{ .Values.user.imagePullPolicy }}
 
           ports:
