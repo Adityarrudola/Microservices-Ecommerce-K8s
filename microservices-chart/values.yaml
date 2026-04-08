@@ -83,7 +83,7 @@ auth:
     DB_USER: app_user
     DB_PASS: app_password
     SECRET_KEY: mysecretkey
-    USER_SERVICE_URL: "http://user-service:8
+    USER_SERVICE_URL: "http://user-service:80
 
   livenessProbe:
     httpGet:
@@ -117,7 +117,7 @@ order:
     DB_USER: app_user
     DB_PASS: app_password
     USER_SERVICE_URL: "http://user-service:8
-    PRODUCT_SERVICE_URL: "http://product-service:8
+    PRODUCT_SERVICE_URL: "http://product-service:80
 
   livenessProbe:
     httpGet:
