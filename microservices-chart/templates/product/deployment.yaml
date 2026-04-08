@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.product.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.product.name }}
+spec:
+  replicas: {{ .Values.product.replicas }}
+  revisionHistoryLimit: {{ .Values.product.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      app: {{ .Values.product.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.product.name }}
+    spec:
+      containers:
+        - name: {{ .Values.product.name }}
+          image: "{{ .Values.product.image }}"
+          imagePullPolicy: {{ .Values.product.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.product.port }}
+
+          envFrom:
+            - secretRef:
+                name: {{ .Values.product.secretName }}

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init
+data:
+  init.sql: |
+    CREATE USER app_user WITH PASSWORD 'app_password';
+
+    CREATE DATABASE auth_db OWNER app_user;
+    CREATE DATABASE user_db OWNER app_user;
+    CREATE DATABASE product_db OWNER app_user;
+    CREATE DATABASE order_db OWNER app_user;

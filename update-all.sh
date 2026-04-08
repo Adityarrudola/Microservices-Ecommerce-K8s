@@ -20,64 +20,43 @@ kind load docker-image product-service:latest --name $CLUSTER_NAME
 kind load docker-image order-service:latest --name $CLUSTER_NAME
 kind load docker-image streamlit-ui:latest --name $CLUSTER_NAME
 
-echo "🗄️ Applying DATABASE layer (PV → PVC → Service → StatefulSet)..."
+echo "🗄️ Applying Postgres (ConfigMap + StatefulSet + Service)..."
 
-# AUTH DB
-kubectl apply -f k8s/postgres/auth_db/pv.yaml
-kubectl apply -f k8s/postgres/auth_db/pvc.yaml
-kubectl apply -f k8s/postgres/auth_db/service.yaml
-kubectl apply -f k8s/postgres/auth_db/statefulset.yaml
+# FIXED PATH ✅
+kubectl apply -f k8s/postgres/
 
-# USER DB
-kubectl apply -f k8s/postgres/user_db/pv.yaml
-kubectl apply -f k8s/postgres/user_db/pvc.yaml
-kubectl apply -f k8s/postgres/user_db/service.yaml
-kubectl apply -f k8s/postgres/user_db/statefulset.yaml
+echo "⏳ Waiting for Postgres to be ready..."
 
-# PRODUCT DB
-kubectl apply -f k8s/postgres/product_db/pv.yaml
-kubectl apply -f k8s/postgres/product_db/pvc.yaml
-kubectl apply -f k8s/postgres/product_db/service.yaml
-kubectl apply -f k8s/postgres/product_db/statefulset.yaml
+# BETTER THAN SLEEP ✅
+kubectl wait --for=condition=ready pod -l app=postgres --timeout=120s
 
-# ORDER DB
-kubectl apply -f k8s/postgres/order_db/pv.yaml
-kubectl apply -f k8s/postgres/order_db/pvc.yaml
-kubectl apply -f k8s/postgres/order_db/service.yaml
-kubectl apply -f k8s/postgres/order_db/statefulset.yaml
+echo "🚀 Deploying Microservices using Helm..."
 
-echo "⏳ Waiting for DBs to be ready..."
-sleep 10
+helm upgrade --install microservices ./microservices-chart
 
-echo "🔐 Applying SECRETS..."
+echo "⏳ Waiting for microservices to be ready..."
 
-kubectl apply -f k8s/auth/secret.yaml
-kubectl apply -f k8s/user/secret.yaml
-kubectl apply -f k8s/product/secret.yaml
-kubectl apply -f k8s/order/secret.yaml
+kubectl wait --for=condition=available deployment/auth-service --timeout=120s || true
+kubectl wait --for=condition=available deployment/user-service --timeout=120s || true
+kubectl wait --for=condition=available deployment/product-service --timeout=120s || true
+kubectl wait --for=condition=available deployment/order-service --timeout=120s || true
+kubectl wait --for=condition=available deployment/streamlit-ui --timeout=120s || true
 
-echo "⚙️ Applying SERVICES + DEPLOYMENTS..."
+echo "🔄 Restarting deployments (optional)..."
 
-kubectl apply -f k8s/auth/
-kubectl apply -f k8s/user/
-kubectl apply -f k8s/product/
-kubectl apply -f k8s/order/
-kubectl apply -f k8s/ui/
+kubectl rollout restart deployment auth-service || true
+kubectl rollout restart deployment user-service || true
+kubectl rollout restart deployment product-service || true
+kubectl rollout restart deployment order-service || true
+kubectl rollout restart deployment streamlit-ui || true
 
-echo "🌐 Applying INGRESS..."
+echo "📊 Current Pods:"
+kubectl get pods -o wide
 
-kubectl apply -f k8s/ingress/
+echo "📡 Services:"
+kubectl get svc
 
-echo "🔄 Restarting deployments..."
+echo "🌐 Ingress:"
+kubectl get ingress
 
-kubectl rollout restart deployment auth-service
-kubectl rollout restart deployment user-service
-kubectl rollout restart deployment product-service
-kubectl rollout restart deployment order-service
-kubectl rollout restart deployment streamlit-ui
-
-echo "📊 Current pods:"
-kubectl get pods
-
-echo "🌍 Access your app at: http://localhost:8085"
 echo "✅ Deployment complete!"

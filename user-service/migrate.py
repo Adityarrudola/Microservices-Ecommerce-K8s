@@ -3,7 +3,7 @@ import os
 import time
 
 def migrate():
-    print("🚀 Starting Database Migration...")
+    print("Starting Database Migration...")
     db_config = {
         "host": os.environ["DB_HOST"],
         "database": os.environ["DB_NAME"],

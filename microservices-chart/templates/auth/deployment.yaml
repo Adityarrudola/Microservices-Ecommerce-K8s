@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.auth.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.auth.name }}
+spec:
+  replicas: {{ .Values.auth.replicas }}
+  revisionHistoryLimit: {{ .Values.auth.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      app: {{ .Values.auth.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.auth.name }}
+    spec:
+      containers:
+        - name: {{ .Values.auth.name }}
+          image: "{{ .Values.auth.image }}"
+          imagePullPolicy: {{ .Values.auth.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.auth.port }}
+
+          envFrom:
+            - secretRef:
+                name: {{ .Values.auth.secretName }}

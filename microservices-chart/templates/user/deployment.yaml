@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.user.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.user.name }}
+
+spec:
+  replicas: {{ .Values.user.replicas }}
+  revisionHistoryLimit: {{ .Values.user.revisionHistoryLimit }}
+
+  selector:
+    matchLabels:
+      app: {{ .Values.user.name }}
+
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.user.name }}
+
+    spec:
+
+      initContainers:
+        - name: db-migration
+          image: "{{ .Values.user.image }}"
+          imagePullPolicy: {{ .Values.user.imagePullPolicy }}
+
+          # ✅ FIXED COMMAND
+          command:
+            - python
+            - /app/migrate.py
+
+          envFrom:
+            - secretRef:
+                name: {{ .Values.user.secretName }}
+
+
+      containers:
+        - name: {{ .Values.user.name }}
+          image: "{{ .Values.user.image }}"
+          imagePullPolicy: {{ .Values.user.imagePullPolicy }}
+
+          ports:
+            - containerPort: {{ .Values.user.port }}
+
+          envFrom:
+            - secretRef:
+                name: {{ .Values.user.secretName }}
