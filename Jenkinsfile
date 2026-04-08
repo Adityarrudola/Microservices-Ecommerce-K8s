@@ -45,15 +45,17 @@ pipeline {
 
         stage('Commit & Push Changes') {
             steps {
-                sh """
-                git config user.name "jenkins"
-                git config user.email "jenkins@local"
+                withCredentials([string(credentialsId: 'github-token', variable: 'GIT_TOKEN')]) {
+                    sh """
+                    git config user.name "jenkins"
+                    git config user.email "jenkins@local"
 
-                git add microservices-chart/values.yaml
-                git commit -m "Update image tags to ${BUILD_NUMBER}" || echo "No changes to commit"
+                    git add microservices-chart/values.yaml
+                    git commit -m "Update image tags to ${BUILD_NUMBER}" || echo "No changes to commit"
 
-                git push https://adityarrudola:${GIT_TOKEN}@github.com/Adityarrudola/Microservices-Ecommerce-K8s.git ${BRANCH}
-                """
+                    git push https://adityarrudola:${GIT_TOKEN}@github.com/Adityarrudola/Microservices-Ecommerce-K8s.git ${BRANCH}
+                    """
+                }
             }
         }
     }
