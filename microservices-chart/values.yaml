@@ -1,33 +1,26 @@
 replicaCount: 1
-
 image:
   repository: nginx
   pullPolicy: IfNotPresent
-  tag: ""
-
+  tag: ''
 imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-
+nameOverride: ''
+fullnameOverride: ''
 serviceAccount:
   create: true
   automount: true
   annotations: {}
-  name: ""
-
+  name: ''
 podAnnotations: {}
 podLabels: {}
-
 podSecurityContext: {}
 securityContext: {}
-
 service:
   type: ClusterIP
   port: 80
-
 ingress:
   enabled: false
-  className: ""
+  className: ''
   annotations: {}
   hosts:
     - host: chart-example.local
@@ -35,183 +28,139 @@ ingress:
         - path: /
           pathType: ImplementationSpecific
   tls: []
-
 resources: {}
-
 autoscaling:
   enabled: false
   minReplicas: 1
   maxReplicas: 100
   targetCPUUtilizationPercentage: 80
-
 nodeSelector: {}
 tolerations: []
 affinity: {}
-
-# =========================
-# GLOBAL DATABASE CONFIG
-# =========================
-
 global:
   postgres:
     host: postgres
     user: app_user
     password: app_password
-
-# =========================
-# MICROSERVICES CONFIG
-# =========================
-
 auth:
   name: auth-service
   image: adityarrudola/auth-service
-  tag: latest
+  tag: '11'
   imagePullPolicy: Always
   replicas: 2
   revisionHistoryLimit: 2
   port: 8000
-
   service:
     type: ClusterIP
     port: 80
-
   secretName: auth-secret
-
   env:
     DB_HOST: postgres
     DB_NAME: auth_db
     DB_USER: app_user
     DB_PASS: app_password
     SECRET_KEY: mysecretkey
-    USER_SERVICE_URL: "http://user-service:80"
-
+    USER_SERVICE_URL: http://user-service:80
   livenessProbe:
     httpGet:
       path: /docs
       port: 8000
-
   readinessProbe:
     httpGet:
       path: /docs
       port: 8000
-
-
 order:
   name: order-service
   image: adityarrudola/order-service
-  tag: latest
+  tag: '11'
   imagePullPolicy: Always
   replicas: 2
   revisionHistoryLimit: 2
   port: 8000
-
   service:
     type: ClusterIP
     port: 80
-
   secretName: order-secret
-
   env:
     DB_HOST: postgres
     DB_NAME: order_db
     DB_USER: app_user
     DB_PASS: app_password
-    USER_SERVICE_URL: "http://user-service:80"
-    PRODUCT_SERVICE_URL: "http://product-service:80"
-
+    USER_SERVICE_URL: http://user-service:80
+    PRODUCT_SERVICE_URL: http://product-service:80
   livenessProbe:
     httpGet:
       path: /docs
       port: 8000
-
   readinessProbe:
     httpGet:
       path: /docs
       port: 8000
-
-
 product:
   name: product-service
   image: adityarrudola/product-service
-  tag: latest
+  tag: '11'
   imagePullPolicy: Always
   replicas: 2
   revisionHistoryLimit: 2
   port: 8000
-
   service:
     type: ClusterIP
     port: 80
-
   secretName: product-secret
-
   env:
     DB_HOST: postgres
     DB_NAME: product_db
     DB_USER: app_user
     DB_PASS: app_password
-
   livenessProbe:
     httpGet:
       path: /docs
       port: 8000
-
   readinessProbe:
     httpGet:
       path: /docs
       port: 8000
-
-
 user:
   name: user-service
   image: adityarrudola/user-service
-  tag: latest
+  tag: '11'
   imagePullPolicy: Always
   replicas: 2
   revisionHistoryLimit: 2
   port: 8000
-
   service:
     type: ClusterIP
     port: 80
-
   secretName: user-secret
-
   env:
     DB_HOST: postgres
     DB_NAME: user_db
     DB_USER: app_user
     DB_PASS: app_password
-
   livenessProbe:
     httpGet:
       path: /docs
       port: 8000
-
   readinessProbe:
     httpGet:
       path: /docs
       port: 8000
-
-
 ui:
   name: streamlit-ui
   image: adityarrudola/streamlit-ui
-  tag: latest
+  tag: '11'
   imagePullPolicy: Always
   replicas: 1
   revisionHistoryLimit: 2
   port: 8501
-
   service:
     type: ClusterIP
     port: 80
-
   livenessProbe:
     httpGet:
       path: /
       port: 8501
-
   readinessProbe:
     httpGet:
       path: /
