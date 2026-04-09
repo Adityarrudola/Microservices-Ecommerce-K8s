@@ -45,7 +45,7 @@ global:
 auth:
   name: auth-service
   image: adityarrudola/auth-service
-  tag: '13'
+  tag: '14'
   imagePullPolicy: Always
   replicas: 2
   revisionHistoryLimit: 2
@@ -72,7 +72,7 @@ auth:
 order:
   name: order-service
   image: adityarrudola/order-service
-  tag: '13'
+  tag: '14'
   imagePullPolicy: Always
   replicas: 2
   revisionHistoryLimit: 2
@@ -99,7 +99,7 @@ order:
 product:
   name: product-service
   image: adityarrudola/product-service
-  tag: '13'
+  tag: '14'
   imagePullPolicy: Always
   replicas: 2
   revisionHistoryLimit: 2
@@ -124,7 +124,7 @@ product:
 user:
   name: user-service
   image: adityarrudola/user-service
-  tag: '13'
+  tag: '14'
   imagePullPolicy: Always
   replicas: 2
   revisionHistoryLimit: 2
@@ -149,7 +149,7 @@ user:
 ui:
   name: streamlit-ui
   image: adityarrudola/streamlit-ui
-  tag: '13'
+  tag: '14'
   imagePullPolicy: Always
   replicas: 1
   revisionHistoryLimit: 2
