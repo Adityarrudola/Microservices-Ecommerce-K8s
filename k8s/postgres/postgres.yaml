@@ -12,13 +12,14 @@ spec:
     metadata:
       labels:
         app: postgres
+      annotations:
+        sidecar.istio.io/inject: "true"
     spec:
       containers:
         - name: postgres
           image: postgres:15
           ports:
             - containerPort: 5432
-
           env:
             - name: POSTGRES_USER
               value: postgres

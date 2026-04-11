@@ -20,7 +20,6 @@ spec:
         app: {{ .Values.user.name }}
       annotations:
         decar.istio.io/inject: "true"
-        traffic.sidecar.istio.io/excludeOutboundPorts: "5432"
 
     spec:
 

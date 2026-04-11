@@ -17,7 +17,6 @@ spec:
         app: {{ .Values.product.name }}
       annotations:
         sidecar.istio.io/inject: "true"
-        traffic.sidecar.istio.io/excludeOutboundPorts: "5432"
     spec:
       containers:
         - name: {{ .Values.product.name }}
