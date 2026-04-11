@@ -1,221 +1,296 @@
-# Microservices Platform on Kubernetes with Istio Service Mesh
+# Production-Grade Microservices Platform with Kubernetes, Istio, Argo CD & Observability
+
+---
 
 ## Overview
 
-This project demonstrates a production-style microservices architecture deployed on Kubernetes. It includes multiple backend services, each with its own database, exposed through an ingress layer and integrated with an Istio service mesh for secure communication and observability.
+This project is an advanced upgrade of a microservices-based eCommerce system, evolved into a production-grade cloud-native platform that closely mimics real-world distributed systems.
 
-The system is designed to reflect real-world distributed systems with proper separation of concerns, database isolation, and service-to-service communication patterns.
+It demonstrates not just deployment, but **end-to-end platform engineering**, including:
+
+- Kubernetes-based microservices architecture with proper service isolation  
+- Istio service mesh for secure, observable service-to-service communication  
+- GitOps workflow using Argo CD for declarative and automated deployments  
+- Helm-based templating for scalable and reusable infrastructure  
+- CI/CD pipeline using Jenkins for automated build and delivery  
+- Full observability stack with Prometheus, Grafana, and Kiali  
+- Real-time alerting using Alertmanager integrated with Slack  
+- Developer productivity improvements using K9s for live debugging  
+
+The project focuses heavily on **real debugging scenarios**, such as service mesh issues, database connectivity failures, GitOps conflicts, and stateful workload behavior.
 
 ---
 
 ## Architecture
 
-<img width="1209" height="537" alt="Screenshot 2026-04-04 at 12 04 27 PM" src="https://github.com/user-attachments/assets/d4a421f8-7864-457d-8b18-b4cef97b2264" />
+<img width="1354" height="513" alt="Screenshot 2026-04-11 at 2 52 12 PM" src="https://github.com/user-attachments/assets/89b01518-eefc-434b-9f63-5be265327b86" />
 
-Client → Ingress → Services → Pods → Databases
+Client → Ingress → Service Mesh (Istio) → Microservices → Databases  
 
 Request Flow:
 
-Client (Browser / curl)  
-→ NGINX Ingress (Layer 7 Routing)  
-→ Kubernetes Services (ClusterIP)  
-→ Pods (FastAPI Applications)  
-→ PostgreSQL Databases (per service)
+Client → NGINX Ingress → Istio Ingress Gateway → Kubernetes Services → Pods (FastAPI + Envoy Sidecars) → PostgreSQL  
+
+- Ingress handles external routing  
+- Istio manages internal traffic, security, and observability  
+- Services abstract pod networking  
+- Each microservice communicates over the mesh with telemetry enabled  
 
 ---
 
-## Services
+## Microservices
 
 Auth Service  
-- Handles authentication (login, register, JWT generation)  
-- Database: auth_db  
+- Handles authentication and JWT generation  
+- Acts as the entry point for identity  
+- DB: auth_db  
 
 User Service  
-- Manages user profile data  
-- Database: user_db  
+- Manages user data and syncs with Auth Service  
+- Demonstrates inter-service communication  
+- DB: user_db  
 
 Product Service  
-- Manages product catalog  
-- Database: product_db  
+- Maintains product catalog  
+- DB: product_db  
 
 Order Service  
-- Handles order creation and validation  
-- Database: order_db  
+- Handles order creation  
+- Communicates with User and Product services  
+- DB: order_db  
 
 Streamlit UI  
-- Frontend interface for interacting with the system  
+- Lightweight frontend for interacting with APIs  
+- Helps validate end-to-end flow  
+
+Each service is independently deployable and follows **database-per-service architecture**.
 
 ---
 
 ## Authentication Flow
 
-1. User sends login request to Auth Service  
-2. Auth Service validates credentials and generates a JWT token  
-3. Token is returned to the client  
+1. Client sends login request to Auth Service  
+2. Auth Service validates credentials and generates JWT  
+3. Token is returned to client  
 4. Client includes token in Authorization header  
 5. Other services validate token using shared secret  
+
+This ensures **stateless authentication across distributed services**.
 
 ---
 
 ## Database Architecture
 
-Each service owns its own PostgreSQL database. No service directly accesses another service’s database.
+auth-service → auth_db  
+user-service → user_db  
+product-service → product_db  
+order-service → order_db  
 
-auth-service → auth-db  
-user-service → user-db  
-product-service → product-db  
-order-service → order-db  
-
-This ensures isolation, scalability, and fault tolerance.
-
----
-
-## Ingress Routing
-
-/login, /register → auth-service  
-/users → user-service  
-/products → product-service  
-/orders → order-service  
-/ → streamlit-ui  
+- Each service owns its schema and data  
+- No cross-database access allowed  
+- Improves fault isolation and scalability  
+- Helps simulate real microservice boundaries  
 
 ---
 
 ## Kubernetes Components
 
-<img width="1451" height="707" alt="Screenshot 2026-04-04 at 11 30 07 AM" src="https://github.com/user-attachments/assets/1baeb866-b36a-404d-98f6-ebf37bf51105" />
+- Deployments for stateless services with replica scaling  
+- StatefulSets for PostgreSQL with persistent storage  
+- Services (ClusterIP) for internal DNS-based communication  
+- Ingress for external traffic routing  
+- Secrets for environment variables and credentials  
+- Persistent Volumes and PVCs for durable storage  
 
-- Deployments for stateless services  
-- StatefulSets for PostgreSQL databases  
-- Services (ClusterIP) for internal communication  
-- Persistent Volumes (PV)  
-- Persistent Volume Claims (PVC)  
-- Secrets for environment variables  
-- Ingress for external routing  
+Special focus was given to understanding **StatefulSet lifecycle and persistence behavior**.
+
+---
+
+## Helm
+
+- All services are deployed using Helm charts  
+- Centralized values.yaml for configuration  
+- Enables easy upgrades, rollbacks, and environment changes  
+- Reduces duplication across service manifests  
+
+---
+
+## Argo CD (GitOps)
+
+<img width="1454" height="739" alt="Screenshot 2026-04-11 at 12 59 15 PM copy" src="https://github.com/user-attachments/assets/7458cf1e-8ef9-4ded-a3ec-3f99e44847f9" />
+
+- Entire system managed declaratively via Git  
+- Argo CD continuously syncs cluster state with repository  
+- Eliminates configuration drift  
+- Handles automated deployments and rollbacks  
+
+A key learning was resolving **Helm vs Argo CD conflicts**, enforcing Git as the single source of truth.
+
+---
+
+## CI/CD Pipeline (Jenkins)
+
+<img width="1454" height="739" alt="Screenshot 2026-04-11 at 12 58 03 PM" src="https://github.com/user-attachments/assets/f403f4b2-29aa-4896-ae6e-26ddc1d3876a" />
+
+- Jenkins is used as the Continuous Integration layer for the platform  
+- Pipeline is triggered manually (or via SCM trigger) by the developer  
+- Automates build, versioning, and GitOps trigger flow  
+
+Pipeline Flow:
+
+1. Checkout latest code from GitHub  
+2. Build Docker images for all services  
+3. Push images to Docker Hub  
+4. Update Helm values.yaml with new image tags (BUILD_NUMBER)  
+5. Commit and push updated values.yaml back to GitHub  
+6. Argo CD detects changes and automatically syncs deployment  
+
+Key Highlights:
+
+- Fully automated image lifecycle  
+- Tight integration with GitOps workflow  
+- No direct kubectl/helm deploy from CI (clean separation of concerns)  
+- Enables reproducible and versioned deployments  
 
 ---
 
 ## Istio Service Mesh
 
-<img width="1451" height="707" alt="Screenshot 2026-04-04 at 11 25 20 AM" src="https://github.com/user-attachments/assets/9e0cd549-9801-40b8-af88-4abe54042a50" />
+<img width="1456" height="739" alt="Screenshot 2026-04-11 at 1 40 02 PM" src="https://github.com/user-attachments/assets/39fe3d5d-059c-4664-9fbd-811df8963e5a" />
 
-- Sidecar injection enabled for all services  
-- Mutual TLS (mTLS) enforced  
-- Traffic routing and observability through Istio  
-- Kiali used for service graph visualization  
-- Versioned traffic using labels (version: v1)  
+- Automatic sidecar injection using Envoy proxies  
+- Mutual TLS (mTLS) for secure communication  
+- Traffic interception and routing at L7  
+- Deep observability with metrics and traces  
 
----
+Special handling for PostgreSQL:
 
-## Key Issues Solved
-
-Database Connection Issues  
-- Fixed incorrect psycopg2 configuration (used dbname instead of database)
-
-StatefulSet Persistence Behavior  
-- Learned that environment variables do not reinitialize databases once volumes are created
-
-Readiness and Liveness Probe Failures  
-- Adjusted probe timing using initialDelaySeconds to allow database initialization
-
-Data Inconsistency Across Services  
-- Resolved ID mismatch by resetting sequences using:
-  TRUNCATE TABLE <table> RESTART IDENTITY;
-
-Istio Protocol Sniffing Issue  
-- Fixed database communication by explicitly naming ports:
-  name: tcp-postgresql
-
-YAML Strict Decoding Errors  
-- Removed invalid fields such as metadata.version
-
----
-
-## Setup and Deployment
-
-1. Create Kubernetes Cluster (Kind)
-
-   kind create cluster --name microservices-cluster --config kind-config.yaml
-
-2. Build Docker Images
-
-   docker build -t auth-service:latest ./auth-service  
-   docker build -t user-service:latest ./user-service  
-   docker build -t product-service:latest ./product-service  
-   docker build -t order-service:latest ./order-service  
-   docker build -t streamlit-ui:latest ./ui  
-
-3. Load Images into Kind
-
-   kind load docker-image auth-service:latest --name microservices-cluster  
-   kind load docker-image user-service:latest --name microservices-cluster  
-   kind load docker-image product-service:latest --name microservices-cluster  
-   kind load docker-image order-service:latest --name microservices-cluster  
-   kind load docker-image streamlit-ui:latest --name microservices-cluster  
-
-4. Deploy Kubernetes Resources
-
-   kubectl apply -f k8s/postgres/  
-   kubectl apply -f k8s/auth/  
-   kubectl apply -f k8s/user/  
-   kubectl apply -f k8s/product/  
-   kubectl apply -f k8s/order/  
-   kubectl apply -f k8s/ui/  
-   kubectl apply -f k8s/ingress/  
-
-5. Restart Deployments
-
-   kubectl rollout restart deployment auth-service  
-   kubectl rollout restart deployment user-service  
-   kubectl rollout restart deployment product-service  
-   kubectl rollout restart deployment order-service  
-   kubectl rollout restart deployment streamlit-ui  
+- Database traffic excluded from sidecar interception  
+- Avoids TCP connection failures caused by Envoy  
+- Demonstrates real-world service mesh edge cases  
 
 ---
 
 ## Observability
 
-Kiali Dashboard  
-- Visualizes service-to-service communication  
-- Shows traffic flow, versions, and mTLS status  
+<img width="1454" height="739" alt="Screenshot 2026-04-11 at 12 59 33 PM" src="https://github.com/user-attachments/assets/3252e6fa-cffc-4979-bae8-f6bcc0152405" />
 
-Istio Metrics  
-- Provides insights into request latency, error rates, and traffic distribution  
+Prometheus  
+- Collects metrics from services and nodes  
+- Used for alerting and monitoring  
 
----
+<img width="1454" height="739" alt="Screenshot 2026-04-11 at 12 59 26 PM" src="https://github.com/user-attachments/assets/43823203-8fd2-4226-a44d-3bf7ed90cece" />
 
-## Key Learnings
+Grafana  
+- Visual dashboards for system health  
+- Tracks CPU, memory, request rates, and errors  
 
-- Importance of database-per-service architecture  
-- Debugging distributed systems across multiple layers (app, network, infra)  
-- Handling stateful workloads in Kubernetes  
-- Understanding readiness and liveness probes  
-- Working with Istio service mesh and mTLS  
-- Identifying and fixing configuration and networking issues in real-world setups  
-
----
-
-## Current Status
-
-The system is fully functional with:
-
-- All services running and communicating correctly  
-- Independent databases per service  
-- Secure communication via Istio mTLS  
-- Observability through Kiali  
-- Stable Kubernetes deployment  
+Kiali  
+- Visualizes service mesh topology  
+- Shows request flow, traffic distribution, and mTLS status  
+- Useful for debugging service-to-service communication  
 
 ---
 
-## Future Improvements
+## Alerting
 
-- Event-driven architecture using Kafka or RabbitMQ  
-- Observability stack using Prometheus and Grafana  
-- CI/CD pipeline integration  
-- Database migrations and schema versioning  
-- Autoscaling using HPA  
+<img width="1454" height="739" alt="Screenshot 2026-04-11 at 1 00 10 PM" src="https://github.com/user-attachments/assets/abd062cd-755a-495f-8433-33cb211a2f8d" />
+<img width="1454" height="739" alt="Screenshot 2026-04-11 at 1 00 17 PM" src="https://github.com/user-attachments/assets/aa1bbc8b-9959-4939-bfcc-473140701365" />
+
+- Alertmanager configured with Slack integration  
+- Sends real-time alerts to a Slack channel  
+
+Monitored conditions include:
+- High CPU usage  
+- Memory spikes  
+- Pod restarts  
+- Service failures  
+
+Also involved handling **secret management and preventing webhook leaks**.
+
+---
+
+## Tooling
+
+<img width="1456" height="606" alt="Screenshot 2026-04-11 at 1 28 02 PM" src="https://github.com/user-attachments/assets/f030555d-d6b1-4e8d-942b-8bd0946427f6" />
+
+K9s  
+- Terminal-based Kubernetes UI  
+- Real-time visibility into pods, logs, and resources  
+- Speeds up debugging significantly  
+
+---
+
+## Routing
+
+/login → auth-service  
+/users → user-service  
+/products → product-service  
+/orders → order-service  
+/ → streamlit-ui  
+
+Routing is handled via ingress and service abstraction.
+
+---
+
+## Issues Solved
+
+- Istio breaking PostgreSQL connections → fixed via port exclusion and TCP handling  
+- Argo CD overriding Helm changes → enforced GitOps workflow  
+- Secret leak (Slack webhook) → removed from Git history and moved to Kubernetes Secrets  
+- CrashLoopBackOff due to DB misconfig → fixed environment variables and retry logic  
+- StatefulSet confusion → understood persistent volumes and init behavior  
+- CI/CD drift issues → fixed by enforcing Jenkins → Git → Argo CD flow  
+
+These reflect **real production debugging scenarios**.
+
+---
+
+## Setup
+
+Create cluster:
+kind create cluster --name microservices-cluster --config kind-config.yaml
+
+Install Istio:
+istioctl install --set profile=demo -y
+kubectl label namespace default istio-injection=enabled
+
+Install ArgoCD:
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+Port-forward dashboards:
+kubectl port-forward svc/kiali -n istio-system 20001:20001
+kubectl port-forward svc/monitoring-grafana -n monitoring 3000:80
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+
+---
+
+## Status
+
+- All microservices running and stable  
+- PostgreSQL databases connected correctly  
+- Istio mesh fully operational  
+- Argo CD managing deployments  
+- Jenkins CI/CD pipeline integrated and working  
+- Monitoring dashboards active  
+- Slack alerting functional  
+
+---
+
+## Future
+
+- Event-driven architecture (Kafka / RabbitMQ)  
+- Horizontal Pod Autoscaling (HPA)  
+- Canary deployments using Istio  
+- Distributed tracing with Jaeger  
 
 ---
 
 ## Conclusion
 
-This project demonstrates a complete end-to-end microservices system built with Kubernetes and Istio. It reflects real-world challenges and solutions involved in deploying, debugging, and maintaining distributed systems at scale.
+This project represents a **complete, production-style microservices platform**, combining:
+
+Kubernetes + Istio + Helm + Argo CD + Jenkins + Prometheus + Grafana + Kiali + Slack Alerts  
+
+It highlights real-world challenges in building distributed systems and demonstrates how to **design, deploy, debug, and operate them effectively at scale**.
